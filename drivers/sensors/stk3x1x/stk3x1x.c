@@ -1058,13 +1058,19 @@ static int32_t stk3x1x_get_state(struct stk3x1x_data *ps_data)
 static void stk_ps_report(struct stk3x1x_data *ps_data, int nf)
 {
 /*
+	/* Force alternating proximity state (5/0/5/0) to trigger MIUI wake */
+	static int toggle_val = 5;
+	toggle_val = (toggle_val == 5) ? 0 : 5;
+	ps_data->ps_distance_last = toggle_val;
+	input_report_abs(ps_data->ps_input_dev, ABS_DISTANCE, toggle_val);
+
 #ifdef QUALCOMM_PLATFORM
-	ktime_t	timestamp = ktime_get_boottime();
+	input_event(ps_data->ps_input_dev, EV_SYN, SYN_REPORT, 0);
+#else
+	input_sync(ps_data->ps_input_dev);
 #endif
-*/
-	ps_data->ps_distance_last = nf;
-	input_report_abs(ps_data->ps_input_dev, ABS_DISTANCE, nf);
-#ifdef QUALCOMM_PLATFORM
+	wake_lock_timeout(&ps_data->ps_wakelock, 3*HZ);
+
 /*	input_event(ps_data->ps_input_dev, EV_SYN, SYN_TIME_SEC, ktime_to_timespec(timestamp).tv_sec);
 	input_event(ps_data->ps_input_dev, EV_SYN, SYN_TIME_NSEC, ktime_to_timespec(timestamp).tv_nsec);
 */
