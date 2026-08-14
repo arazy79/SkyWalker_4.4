@@ -1,4 +1,4 @@
-name: Kernel Build X00TD 4.4 r9/HMP
+name: Kernel Build X00TD 4.4 r7 hmp
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       branch:
         description: 'Branch repo'
         required: true
-        default: 'r9/hmp'
+        default: 'r7/hmp'
 
 jobs:
   build:
