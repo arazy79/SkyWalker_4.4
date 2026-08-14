@@ -1,4 +1,4 @@
-name: Kernel Build X00TD 4.4 HMP r/9hmp
+name: Kernel Build X00TD 4.4 HMP r9/hmp
 
 on:
   workflow_dispatch:
