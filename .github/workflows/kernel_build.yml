@@ -41,29 +41,28 @@ jobs:
           
           echo "=== NFI staging contents ==="
           ls -la /tmp/nfi/drivers/staging/
+          echo "=== Current staging contents ==="
+          ls -la drivers/staging/ | grep -E "qcacld|fw-api|qcacmn|qca-wifi"
           
-          # Hapus qcacld-3.0 dan fw-api lama
+          # Hapus SEMUA folder WiFi lama
           rm -rf drivers/staging/qcacld-3.0
           rm -rf drivers/staging/fw-api
+          rm -rf drivers/staging/qcacmn
+          rm -rf drivers/staging/qca-wifi-host-cmn
           
-          # Copy dari NFI
+          # Copy SEMUA folder WiFi baru dari NFI
           cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
           cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
+          cp -rf /tmp/nfi/drivers/staging/qca-wifi-host-cmn drivers/staging/
           
-          # RENAME qcacmn → qca-wifi-host-cmn (NFI expect nama ini)
-          mv drivers/staging/qcacmn drivers/staging/qca-wifi-host-cmn
-          
-          # Cek kalau NFI punya qcacmn sendiri
-          if [ -d /tmp/nfi/drivers/staging/qcacmn ]; then
-            rm -rf drivers/staging/qca-wifi-host-cmn
-            cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/qca-wifi-host-cmn
-          fi
+          echo "=== After replace ==="
+          ls -la drivers/staging/ | grep -E "qcacld|fw-api|qcacmn|qca-wifi"
           
           git add drivers/staging/
-          git commit -m "wifi: NFI qcacld-3.0 + fw-api, rename qcacmn to qca-wifi-host-cmn"
+          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2 (qcacld-3.0 + fw-api + qca-wifi-host-cmn)"
           
           rm -rf /tmp/nfi
-
+          
       - name: Cache ccache
         uses: actions/cache@v4
         with:
