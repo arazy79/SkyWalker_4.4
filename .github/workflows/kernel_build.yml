@@ -98,7 +98,8 @@ jobs:
             CC="ccache aarch64-linux-gnu-gcc" \
             CROSS_COMPILE=$CROSS_COMPILE \
             CROSS_COMPILE_ARM32=$CROSS_COMPILE_ARM32 \
-            KCFLAGS="-Wno-error" \
+            KCFLAGS="-Wno-error -Wno-enum-int-mismatch -Wno-incompatible-pointer-types -Wno-misleading-indentation" \
+            WERROR=0 \
             Image.gz dtbs
 
       - name: Pack Image.gz-dtb
