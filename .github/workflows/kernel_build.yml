@@ -53,6 +53,11 @@ jobs:
           ccache --max-size=2G
           ccache --zero-stats
 
+      - name: Set sanitized vars
+        run: |
+          BRANCH_SAFE=$(echo "${{ github.event.inputs.branch }}" | tr '/' '-')
+          echo "BRANCH_SAFE=$BRANCH_SAFE" >> $GITHUB_ENV
+
       - name: Debug check defconfig
         run: |
           echo "Branch: ${{ github.event.inputs.branch }}"
@@ -146,7 +151,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-        name: kernel-4.4HMP-miui- {{ replace(github.event.inputs.branch, '/', '-') }}-${{ github.run_id }}
+          name: kernel-4.4HMP-miui-${{ env.BRANCH_SAFE }}-${{ github.run_id }}
           path: |
             kernel/out/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: warn
