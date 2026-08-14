@@ -42,21 +42,25 @@ jobs:
           echo "=== NFI staging contents ==="
           ls -la /tmp/nfi/drivers/staging/
           
+          # Hapus qcacld-3.0 dan fw-api lama
           rm -rf drivers/staging/qcacld-3.0
           rm -rf drivers/staging/fw-api
-          rm -rf drivers/staging/qcacmn 2>/dev/null || true
           
+          # Copy dari NFI
           cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
           cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
           
-          # qcacmn cuma copy kalau ada
+          # RENAME qcacmn → qca-wifi-host-cmn (NFI expect nama ini)
+          mv drivers/staging/qcacmn drivers/staging/qca-wifi-host-cmn
+          
+          # Cek kalau NFI punya qcacmn sendiri
           if [ -d /tmp/nfi/drivers/staging/qcacmn ]; then
-            cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/
+            rm -rf drivers/staging/qca-wifi-host-cmn
+            cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/qca-wifi-host-cmn
           fi
           
-          git add drivers/staging/qcacld-3.0 drivers/staging/fw-api
-          git add drivers/staging/qcacmn 2>/dev/null || true
-          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2" || echo "Nothing to commit"
+          git add drivers/staging/
+          git commit -m "wifi: NFI qcacld-3.0 + fw-api, rename qcacmn to qca-wifi-host-cmn"
           
           rm -rf /tmp/nfi
 
