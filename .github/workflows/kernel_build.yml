@@ -39,16 +39,24 @@ jobs:
           
           git clone --depth 1 https://github.com/RyuujiX/NFI_SkyWalker.git /tmp/nfi
           
+          echo "=== NFI staging contents ==="
+          ls -la /tmp/nfi/drivers/staging/
+          
           rm -rf drivers/staging/qcacld-3.0
           rm -rf drivers/staging/fw-api
-          rm -rf drivers/staging/qcacmn
+          rm -rf drivers/staging/qcacmn 2>/dev/null || true
           
           cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
           cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
-          cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/
           
-          git add drivers/staging/qcacld-3.0 drivers/staging/fw-api drivers/staging/qcacmn
-          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2"
+          # qcacmn cuma copy kalau ada
+          if [ -d /tmp/nfi/drivers/staging/qcacmn ]; then
+            cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/
+          fi
+          
+          git add drivers/staging/qcacld-3.0 drivers/staging/fw-api
+          git add drivers/staging/qcacmn 2>/dev/null || true
+          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2" || echo "Nothing to commit"
           
           rm -rf /tmp/nfi
 
@@ -166,7 +174,7 @@ jobs:
           find kernel/out/arch/arm64/boot/dts -name "sdm*.dtb" 2>/dev/null | head -20 || echo "(none)"
           echo ""
           echo "=== ccache stats ==="
-          ccache --show-stats
+          /usr/bin/ccache --show-stats 2>/dev/null || ccache --show-stats 2>/dev/null || echo "ccache not in PATH"
 
       - name: Upload artifacts
         if: always()
