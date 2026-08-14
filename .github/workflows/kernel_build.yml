@@ -1,4 +1,4 @@
-name: Kernel Build X00TD 4.4 r7 hmp
+name: Kernel Build X00TD 4.4 r9 hmp
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       branch:
         description: 'Branch repo'
         required: true
-        default: 'r7/hmp'
+        default: 'r9/hmp'
 
 jobs:
   build:
@@ -30,6 +30,27 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           path: kernel
           submodules: recursive
+
+      - name: Replace WiFi Drivers with NFI SkyWalker (CAF 9.2)
+        working-directory: kernel
+        run: |
+          git config --global user.email "ci@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          git clone --depth 1 https://github.com/RyuujiX/NFI_SkyWalker.git /tmp/nfi
+          
+          rm -rf drivers/staging/qcacld-3.0
+          rm -rf drivers/staging/fw-api
+          rm -rf drivers/staging/qcacmn
+          
+          cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
+          cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
+          cp -rf /tmp/nfi/drivers/staging/qcacmn drivers/staging/
+          
+          git add drivers/staging/qcacld-3.0 drivers/staging/fw-api drivers/staging/qcacmn
+          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2"
+          
+          rm -rf /tmp/nfi
 
       - name: Cache ccache
         uses: actions/cache@v4
