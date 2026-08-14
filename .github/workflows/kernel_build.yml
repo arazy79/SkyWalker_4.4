@@ -39,27 +39,18 @@ jobs:
           
           git clone --depth 1 https://github.com/RyuujiX/NFI_SkyWalker.git /tmp/nfi
           
-          echo "=== NFI staging contents ==="
-          ls -la /tmp/nfi/drivers/staging/
-          echo "=== Current staging contents ==="
-          ls -la drivers/staging/ | grep -E "qcacld|fw-api|qcacmn|qca-wifi"
-          
-          # Hapus SEMUA folder WiFi lama
+          # Hapus 3 folder WiFi lama (CAF 7.2)
           rm -rf drivers/staging/qcacld-3.0
           rm -rf drivers/staging/fw-api
-          rm -rf drivers/staging/qcacmn
           rm -rf drivers/staging/qca-wifi-host-cmn
           
-          # Copy SEMUA folder WiFi baru dari NFI
+          # Copy 3 folder WiFi baru dari NFI (CAF 9.2)
           cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
           cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
           cp -rf /tmp/nfi/drivers/staging/qca-wifi-host-cmn drivers/staging/
           
-          echo "=== After replace ==="
-          ls -la drivers/staging/ | grep -E "qcacld|fw-api|qcacmn|qca-wifi"
-          
           git add drivers/staging/
-          git commit -m "wifi: replace with NFI SkyWalker CAF 9.2 (qcacld-3.0 + fw-api + qca-wifi-host-cmn)"
+          git commit -m "wifi: replace qcacld-3.0/fw-api/qca-wifi-host-cmn with NFI SkyWalker CAF 9.2"
           
           rm -rf /tmp/nfi
           
