@@ -30,8 +30,7 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           path: kernel
           submodules: recursive
-          fetch-depth: 300        # ← tambah ini
-
+          
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -58,17 +57,6 @@ jobs:
         run: |
           BRANCH_SAFE=$(echo "${{ github.event.inputs.branch }}" | tr '/' '-')
           echo "BRANCH_SAFE=$BRANCH_SAFE" >> $GITHUB_ENV
-
-      # ─── DEBUG: CARI HASH WIFI DRIVER DI r9/hmp ──────────────────────────
-      - name: Find WiFi Driver Hash (r9/hmp)
-        working-directory: kernel
-        run: |
-          echo ">>> Git log WiFi driver folder (qcacld-3.0):"
-          git log --oneline drivers/staging/qcacld-3.0 | head -10
-          echo ""
-          echo ">>> Git log all (20 terbaru):"
-          git log --oneline -20
-      # ─────────────────────────────────────────────────────────────────────
 
       - name: Debug check defconfig
         run: |
@@ -163,7 +151,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-4.4-r9-HMP-miui-${{ env.BRANCH_SAFE }}-${{ github.run_id }}
+          name: kernel-4.4HMP-miui-${{ env.BRANCH_SAFE }}-${{ github.run_id }}
           path: |
             kernel/out/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: warn
