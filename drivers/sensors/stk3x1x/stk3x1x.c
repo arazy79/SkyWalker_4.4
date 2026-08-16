@@ -1057,25 +1057,14 @@ static int32_t stk3x1x_get_state(struct stk3x1x_data *ps_data)
 
 static void stk_ps_report(struct stk3x1x_data *ps_data, int nf)
 {
-/*
-#ifdef QUALCOMM_PLATFORM
-        ktime_t        timestamp = ktime_get_boottime();
-#endif
-*/
-        	/* Force alternating proximity state (5/0/5/0) to trigger wake */
-	static int toggle_val = 5;
-	toggle_val = (toggle_val == 5) ? 0 : 5;
-	ps_data->ps_distance_last = toggle_val;
-	input_report_abs(ps_data->ps_input_dev, ABS_DISTANCE, toggle_val);
+    /* Force input layer to always emit event even if value unchanged */
+    ps_data->ps_input_dev->absinfo[ABS_DISTANCE].value = (nf == 0) ? 1 : 0;
 
-#ifdef QUALCOMM_PLATFORM
-/*        input_event(ps_data->ps_input_dev, EV_SYN, SYN_TIME_SEC, ktime_to_timespec(timestamp).tv_sec);
-        input_event(ps_data->ps_input_dev, EV_SYN, SYN_TIME_NSEC, ktime_to_timespec(timestamp).tv_nsec);
-*/
-        input_event(ps_data->ps_input_dev, EV_SYN, SYN_REPORT,0);
-#endif
-        input_sync(ps_data->ps_input_dev);
-        wake_lock_timeout(&ps_data->ps_wakelock, 3*HZ);
+    ps_data->ps_distance_last = nf;
+    input_report_abs(ps_data->ps_input_dev, ABS_DISTANCE, nf);
+    input_event(ps_data->ps_input_dev, EV_SYN, SYN_REPORT, 0);
+    input_sync(ps_data->ps_input_dev);
+    wake_lock_timeout(&ps_data->ps_wakelock, 3*HZ);
 }
 
 static void stk_als_report(struct stk3x1x_data *ps_data, int als)
@@ -2350,19 +2339,25 @@ static ssize_t stk_ps_code_show(struct device *dev, struct device_attribute *att
 
 #ifdef QUALCOMM_PLATFORM
 static int stk_ps_enable_set(struct sensors_classdev *sensors_cdev,
-                                                unsigned int enabled)
+                                            unsigned int enabled)
 {
-        struct stk3x1x_data *ps_data = container_of(sensors_cdev,
-                                                struct stk3x1x_data, ps_cdev);
-        int err;
+    struct stk3x1x_data *ps_data = container_of(sensors_cdev,
+                                            struct stk3x1x_data, ps_cdev);
+    int err = 0;
 
-        mutex_lock(&ps_data->io_lock);
-        err = stk3x1x_enable_ps(ps_data, enabled, 0);
-        mutex_unlock(&ps_data->io_lock);
-
-        if (err < 0)
-                return err;
-        return 0;
+    mutex_lock(&ps_data->io_lock);
+    err = stk3x1x_enable_ps(ps_data, enabled, 0);
+    mutex_unlock(&ps_data->io_lock);
+    
+    /* Force flush complete event so SensorManager doesn't stall */
+    if (!err && enabled) {
+        input_event(ps_data->ps_input_dev, EV_SYN, SYN_CONFIG, 0);
+        input_sync(ps_data->ps_input_dev);
+    }
+    
+    if (err < 0)
+        return err;
+    return 0;
 }
 #endif
 
