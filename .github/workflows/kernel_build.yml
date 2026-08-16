@@ -1,4 +1,4 @@
-name: Kernel Build X00TD 4.4 r5 hmp
+name: Kernel Build X00TD 4.4 r9 hmp
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       branch:
         description: 'Branch repo'
         required: true
-        default: 'r5/hmp'
+        default: 'r9/hmp'
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           path: kernel
           submodules: recursive
-          
+
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -57,6 +57,34 @@ jobs:
         run: |
           BRANCH_SAFE=$(echo "${{ github.event.inputs.branch }}" | tr '/' '-')
           echo "BRANCH_SAFE=$BRANCH_SAFE" >> $GITHUB_ENV
+
+      # ─── WIFI DRIVER REPLACEMENT ──────────────────────────────────────────
+      - name: Replace WiFi Driver (R CAF 9.2 → Pie CAF 7.2)
+        working-directory: kernel
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+
+          echo ">>> Removing R CAF 9.2 WiFi drivers..."
+          rm -rf drivers/staging/qcacld-3.0 \
+                 drivers/staging/fw-api \
+                 drivers/staging/qca-wifi-host-cmn
+          git add drivers/staging/
+          git commit -m "Remove R CAF 9.2 WLAN drivers"
+
+          echo ">>> Fetching Pie CAF 7.2 drivers from r4/hmp..."
+          git remote add ryujixx-r4 https://github.com/RyuujiX/SkyWalker_4.4.git || true
+          git fetch ryujixx-r4 r4/hmp --depth=1
+
+          git checkout FETCH_HEAD -- \
+              drivers/staging/qcacld-3.0 \
+              drivers/staging/fw-api \
+              drivers/staging/qca-wifi-host-cmn
+
+          git add drivers/staging/
+          git commit -m "Restore Pie CAF 7.2 WiFi drivers (from r4/hmp)"
+          echo ">>> WiFi driver swap done!"
+      # ─────────────────────────────────────────────────────────────────────
 
       - name: Debug check defconfig
         run: |
@@ -151,7 +179,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-4.4-r5-HMP-miui-${{ env.BRANCH_SAFE }}-${{ github.run_id }}
+          name: kernel-4.4-r9-HMP-miui-${{ env.BRANCH_SAFE }}-${{ github.run_id }}
           path: |
             kernel/out/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: warn
