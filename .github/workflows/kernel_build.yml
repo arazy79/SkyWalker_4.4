@@ -30,29 +30,6 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           path: kernel
           submodules: recursive
-
-      - name: Replace WiFi Drivers with NFI SkyWalker (CAF 9.2)
-        working-directory: kernel
-        run: |
-          git config --global user.email "ci@github.com"
-          git config --global user.name "GitHub Actions"
-          
-          git clone --depth 1 https://github.com/RyuujiX/NFI_SkyWalker.git /tmp/nfi
-          
-          # Hapus 3 folder WiFi lama (CAF 7.2)
-          rm -rf drivers/staging/qcacld-3.0
-          rm -rf drivers/staging/fw-api
-          rm -rf drivers/staging/qca-wifi-host-cmn
-          
-          # Copy 3 folder WiFi baru dari NFI (CAF 9.2)
-          cp -rf /tmp/nfi/drivers/staging/qcacld-3.0 drivers/staging/
-          cp -rf /tmp/nfi/drivers/staging/fw-api drivers/staging/
-          cp -rf /tmp/nfi/drivers/staging/qca-wifi-host-cmn drivers/staging/
-          
-          git add drivers/staging/
-          git commit -m "wifi: replace qcacld-3.0/fw-api/qca-wifi-host-cmn with NFI SkyWalker CAF 9.2"
-          
-          rm -rf /tmp/nfi
           
       - name: Cache ccache
         uses: actions/cache@v4
