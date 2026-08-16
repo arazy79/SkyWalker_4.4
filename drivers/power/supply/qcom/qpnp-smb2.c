@@ -1207,7 +1207,6 @@ static int smb2_batt_prop_is_writeable(struct power_supply *psy,
                 enum power_supply_property psp)
 {
         switch (psp) {
-        case POWER_SUPPLY_PROP_CHARGING_ENABLED:
         case POWER_SUPPLY_PROP_INPUT_SUSPEND:
         case POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL:
         case POWER_SUPPLY_PROP_CAPACITY:
@@ -1219,6 +1218,9 @@ static int smb2_batt_prop_is_writeable(struct power_supply *psy,
         case POWER_SUPPLY_PROP_SW_JEITA_ENABLED:
         case POWER_SUPPLY_PROP_VOLTAGE_MAX:
         case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
+        #ifdef CONFIG_MACH_ASUS_SDM660
+		case POWER_SUPPLY_PROP_CHARGING_ENABLED:
+		#endif
                 return 1;
         default:
                 break;
