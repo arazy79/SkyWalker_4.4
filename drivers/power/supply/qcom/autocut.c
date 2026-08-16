@@ -28,32 +28,32 @@ static void autocut_work_fn(struct work_struct *work)
 	if (!psy)
 		goto reschedule;
 
-	ret = psy->get_property(psy, POWER_SUPPLY_PROP_CAPACITY, &val);
-	if (ret) {
-		power_supply_put(psy);
-		goto reschedule;
-	}
+	/* Read capacity */
+	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CAPACITY, &val);
+	if (ret)
+		goto put_psy;
 	capacity = val.intval;
 
-	ret = psy->get_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
-	if (ret) {
-		power_supply_put(psy);
-		goto reschedule;
-	}
+	/* Read charging_enabled state */
+	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+	if (ret)
+		goto put_psy;
 	charging = val.intval;
 
+	/* Logic: max=100 stop, min=90 resume */
 	if (capacity >= max_soc && charging) {
 		val.intval = 0;
-		if (psy->set_property)
-			psy->set_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
-		pr_info("autocut: charging STOPPED at %d%% (max=%d)\n", capacity, max_soc);
+		ret = power_supply_set_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+		if (!ret)
+			pr_info("autocut: charging STOPPED at %d%% (max=%d)\n", capacity, max_soc);
 	} else if (capacity <= min_soc && !charging) {
 		val.intval = 1;
-		if (psy->set_property)
-			psy->set_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
-		pr_info("autocut: charging RESUMED at %d%% (min=%d)\n", capacity, min_soc);
+		ret = power_supply_set_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+		if (!ret)
+			pr_info("autocut: charging RESUMED at %d%% (min=%d)\n", capacity, min_soc);
 	}
 
+put_psy:
 	power_supply_put(psy);
 
 reschedule:
