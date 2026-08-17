@@ -17,6 +17,9 @@
 #include <linux/quotaops.h>
 #include <linux/backing-dev.h>
 #include "internal.h"
+#ifdef CONFIG_DYNAMIC_FSYNC
+#include <linux/dyn_sync_cntrl.h>
+#endif
 
 bool fsync_enabled = true;
 module_param(fsync_enabled, bool, 0755);
@@ -187,6 +190,12 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  * @datasync is set only metadata needed to access modified file data is
  * written.
  */
+
+#ifdef CONFIG_DYNAMIC_FSYNC
+    if (likely(dyn_fsync_active && !suspend_active))
+        return 0;
+#endif
+
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
