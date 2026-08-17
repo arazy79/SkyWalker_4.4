@@ -1,7 +1,6 @@
 /*
  * High-level sync()-related operations
  */
-
 #include <linux/kernel.h>
 #include <linux/file.h>
 #include <linux/fs.h>
@@ -181,28 +180,26 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 
 /**
  * vfs_fsync_range - helper to sync a range of data & metadata to disk
- * @file:		file to sync
- * @start:		offset in bytes of the beginning of data range to sync
- * @end:		offset in bytes of the end of data range (inclusive)
- * @datasync:		perform only datasync
+ * @file:	file to sync
+ * @start:	offset in bytes of the beginning of data range to sync
+ * @end:	offset in bytes of the end of data range (inclusive)
+ * @datasync:	perform only datasync
  *
- * Write back data in range @start..@end and metadata for @file to disk.  If
+ * Write back data in range @start..@end and metadata for @file to disk. If
  * @datasync is set only metadata needed to access modified file data is
  * written.
  */
-
-#ifdef CONFIG_DYNAMIC_FSYNC
-    if (likely(dyn_fsync_active && !suspend_active))
-        return 0;
-#endif
-
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
 
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (likely(dyn_fsync_active && !suspend_active))
+		return 0;
+#endif
+
 	if (!fsync_enabled)
 		return 0;
-
 	if (!file->f_op->fsync)
 		return -EINVAL;
 	if (!datasync && (inode->i_state & I_DIRTY_TIME)) {
