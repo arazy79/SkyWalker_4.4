@@ -1,5 +1,5 @@
 VERSION = 4
-PATCHLEVEL = 14
+PATCHLEVEL = 4
 SUBLEVEL = 302
 EXTRAVERSION = androidperf+
 NAME = Blurry Fish Butt
